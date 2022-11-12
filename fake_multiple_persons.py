@@ -2,7 +2,7 @@ from glob import glob
 import random
 from PIL import Image
 
-input_path = '/media/link92/E/pythonProject/hackaton/original'
+input_path = '/media/link92/E/pythonProject/hackaton/original_images'
 out_path = '/media/link92/E/pythonProject/hackaton/fake_video_frames'
 
 
