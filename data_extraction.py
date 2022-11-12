@@ -3,6 +3,7 @@ from datetime import datetime
 import numpy as np
 import cv2
 from PIL import Image
+from glob import glob
 from facelib import FaceDetector, AgeGenderEstimator, EmotionDetector
 from pymongo import MongoClient as Client
 
@@ -12,13 +13,10 @@ class StreamCustomerData:
         self.collection = collection
         self.age_gender = AgeGenderEstimator()
         self.emotion = EmotionDetector()
-
-    # add face check
-    def face_check(self, frame):
-        pass
-
+        
     # extract features from images
-    def extract_info(self, img, img_time):
+    def extract_info(self, img_path):
+        img = cv2.imread(img_path)
         detector = FaceDetector()
         faces, boxes, scores, landmarks = detector.detect_align(img)
 
@@ -43,30 +41,16 @@ if __name__ == "__main__":
     client = Client("mongodb://127.0.0.1/")
     collection = client.shop.customers
 
-    # streaming
-    video = cv2.VideoCapture('rtsp://username:password@camera_ip_address:554/user=username_passw=password_channel=channel_n_stream=0.sdp')
-
-    # saved video
-    # video = cv2.VideoCapture("filename")
-
-    C = StreamCustomerData(collection)
+    img_done = set()
+    
     while True:
-        ret, frame = video.read()
-        if frame is None:
-            sleep(1)
-            ret, frame = video.read()
-            if frame is None:
-                break
-
-        t = datetime.now()
-        # cleaned_frame = C.face_check(frame)
-        # data_extracted = []
-        # for f in cleaned_frame:
-        data = C.extract_info(frame, t)
-        # data_extracted.append(data)
-        C.write_to_mongo(data)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    video.release()
-
+        imgs_path = set(glob(img_path + "*.jpg"))
+        for image in imgs_path:
+            if image not in img_done:
+                
+                im = cv2.imread(image)
+                t = image.split() # get timestamp
+                data = C.extract_info(im, t)
+                C.write_to_mongo(data)
+                img_done.add(image)
+                
